@@ -48,9 +48,12 @@ def get_urls_from_file(file_path):
     return urls
 
 def download_target_images(driver, folder_path, name):
-    show_more_button = driver.find_element(By.CSS_SELECTOR, "div.sc-5406cfb6-12.fSRZbT button[aria-label='Show more images']")
-    driver.execute_script("arguments[0].click();", show_more_button)
-    print("ok")
+    try:
+        show_more_button = driver.find_element(By.CSS_SELECTOR, "div.sc-5406cfb6-12.fSRZbT button[aria-label='Show more images']")
+        driver.execute_script("arguments[0].click();", show_more_button)
+        print("ok")
+    except Exception as e:
+        print("khong co nut showmore")
 
     image_gallery = driver.find_element("css selector", 'div[data-module-type="ProductDetailImageGallery"]')
     images = image_gallery.find_elements("tag name", "img")
