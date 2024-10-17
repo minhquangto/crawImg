@@ -154,27 +154,70 @@ def download_troybilt_images(driver, folder_path, name):
         print("Không tìm thấy phần tử yêu cầu.")
 
 def download_kolhs_images(driver, folder_path, name):
-
+    # Tải ảnh hero (ảnh chính)
+    hero_image_div = driver.find_element("css selector", '.pdp-large-hero-image')
+    hero_image = hero_image_div.find_element("tag name", "img")
+    srcset = hero_image.get_attribute("srcset")
+    
+    # Lấy URL của ảnh hero và tải nó
+    if srcset:
+        image_url = srcset.split(",")[0].split()[0]
+        if image_url:
+            try:
+                response = requests.get(image_url)
+                if response.status_code == 200:
+                    # Đọc dữ liệu ảnh từ response
+                    image_data = BytesIO(response.content)
+                    img = Image.open(image_data)
+                    width, height = img.size
+                    
+                    # Điều chỉnh ảnh để không bị mất tỷ lệ
+                    new_size = max(width, height)
+                    new_img = Image.new("RGB", (new_size, new_size), (255, 255, 255))
+                    left = (new_size - width) // 2
+                    top = (new_size - height) // 2
+                    new_img.paste(img, (left, top))
+                    
+                    # Đặt tên và lưu ảnh
+                    image_path = os.path.join(folder_path, f"{name}_0.jpg")
+                    new_img.save(image_path)
+                    # print(f"Đã lưu ảnh hero: {image_path}")
+                else:
+                    print(f"Tải ảnh hero thất bại: {image_url}")
+            except Exception as e:
+                print(f"Lỗi khi tải ảnh hero: {image_url}, lỗi: {e}")
+    
+    # Tải các ảnh gallery
     image_gallery = driver.find_element("css selector", '.PDP_Large_Images')
     images = image_gallery.find_elements("tag name", "img")
     
     for i, image in enumerate(images):
         image_url = image.get_attribute("src")
         if image_url:
-            response = requests.get(image_url)
-            if response.status_code == 200:
-                image_data = BytesIO(response.content)
-                img = Image.open(image_data)
-                width, height = img.size
-                new_size = max(width, height)
-                new_img = Image.new("RGB", (new_size, new_size), (255, 255, 255))
-                left = (new_size - width) // 2
-                top = (new_size - height) // 2
-                new_img.paste(img, (left, top))
-                image_name = f"{name} {i}.jpg"
-                image_path = os.path.join(folder_path, image_name)
-                new_img.save(image_path)
-                # print(f"Đã lưu: {image_path}")
+            try:
+                response = requests.get(image_url)
+                if response.status_code == 200:
+                    # Đọc dữ liệu ảnh từ response
+                    image_data = BytesIO(response.content)
+                    img = Image.open(image_data)
+                    width, height = img.size
+                    
+                    # Điều chỉnh ảnh để không bị mất tỷ lệ
+                    new_size = max(width, height)
+                    new_img = Image.new("RGB", (new_size, new_size), (255, 255, 255))
+                    left = (new_size - width) // 2
+                    top = (new_size - height) // 2
+                    new_img.paste(img, (left, top))
+                    
+                    # Đặt tên và lưu ảnh
+                    image_path = os.path.join(folder_path, f"{name}_{i}.jpg")
+                    new_img.save(image_path)
+                    # print(f"Đã lưu ảnh gallery: {image_path}")
+                else:
+                    print(f"Tải ảnh gallery thất bại: {image_url}")
+            except Exception as e:
+                print(f"Lỗi khi tải ảnh gallery: {image_url}, lỗi: {e}")
+
 
 def process_kolhs_url(driver, url, folder_path):
     driver.get(url)
